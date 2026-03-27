@@ -1,6 +1,6 @@
 using UnityEngine;
 using System.Collections;
-
+using Unity.Cinemachine;
 public class PlayerAbilities : MonoBehaviour
 {
     [SerializeField] private SlowMotionController slowMo;
@@ -23,6 +23,8 @@ public class PlayerAbilities : MonoBehaviour
     [SerializeField] private float swingForce = 40f;
     [SerializeField] private LayerMask grappleLayer;
     [SerializeField] private LineRenderer ropeRenderer;
+
+    [SerializeField] private CinemachineImpulseSource dashImpulse;
 
     private Rigidbody2D rb;
     private DistanceJoint2D grappleJoint;
@@ -81,6 +83,7 @@ public class PlayerAbilities : MonoBehaviour
         rb.gravityScale = 0f;
         float dir = movement.HorizontalInput != 0 ? movement.HorizontalInput : transform.localScale.x;
         rb.linearVelocity = new Vector2(dir * dashPower, 0f);
+        dashImpulse.GenerateImpulse(new Vector3(dir, 0, 0));
         yield return new WaitForSeconds(dashTime);
         rb.gravityScale = originalGravity;
         IsDashing = false;
