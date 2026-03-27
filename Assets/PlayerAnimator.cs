@@ -2,7 +2,11 @@ using UnityEngine;
 
 public class PlayerAnimator : MonoBehaviour
 {
-    [SerializeField] private PlayerMovement movement;
+    [SerializeField] private PlayerDetection detection;
+    [SerializeField] private PlayerAnimator playerAnimator;
+    [SerializeField] private PlayerAbilities abilities;
+    [SerializeField] private CharacterMovement movement;
+
     [SerializeField] private Animator anim;
     [SerializeField] private Rigidbody2D rb;
 
@@ -26,12 +30,12 @@ public class PlayerAnimator : MonoBehaviour
 
     private void HandleFlipping()
     {
-        if (movement.IsWallSliding)
+        if (abilities.IsWallSliding)
         {
-            if (movement.IsWallLeft) transform.localScale = new Vector3(1, 1, 1);
-            else if (movement.IsWallRight) transform.localScale = new Vector3(-1, 1, 1);
+            if (detection.IsWallLeft) transform.localScale = new Vector3(1, 1, 1);
+            else if (detection.IsWallRight) transform.localScale = new Vector3(-1, 1, 1);
         }
-        else if (movement.IsWallJumping)
+        else if (abilities.IsWallJumping)
         {
             return;
         }
@@ -44,9 +48,9 @@ public class PlayerAnimator : MonoBehaviour
     private void UpdateAnimationState()
     {
         anim.SetFloat(YVelocity, rb.linearVelocity.y);
-        anim.SetBool(IsGrounded, movement.IsGrounded);
+        anim.SetBool(IsGrounded, detection.IsGrounded);
 
-        if (movement.IsDashing && !movement.IsWallJumping)
+        if (abilities.IsDashing && !abilities.IsWallJumping)
         {
             _wasWallJumping = false;
             PlayAnimation(Dash);
@@ -60,7 +64,7 @@ public class PlayerAnimator : MonoBehaviour
             return;
         }
 
-        if (movement.IsWallJumping || (_wasWallJumping && !movement.IsGrounded && rb.linearVelocity.y > -1f))
+        if (abilities.IsWallJumping || (_wasWallJumping && !detection.IsGrounded && rb.linearVelocity.y > -1f))
         {
             _wasWallJumping = true;
             PlayAnimation(WallJump);
@@ -69,13 +73,13 @@ public class PlayerAnimator : MonoBehaviour
 
         _wasWallJumping = false;
 
-        if (movement.IsWallSliding)
+        if (abilities.IsWallSliding)
         {
             PlayAnimation(WallSlide);
             return;
         }
 
-        if (!movement.IsGrounded)
+        if (!detection.IsGrounded)
         {
             PlayAnimation(Jump);
         }
