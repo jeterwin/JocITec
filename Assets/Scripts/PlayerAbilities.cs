@@ -12,6 +12,8 @@ public class PlayerAbilities : MonoBehaviour
     [SerializeField] private string grappleAbilityName = "Grapple";
     [SerializeField] private string dashAbilityName = "Dash";
 
+    [SerializeField] private KeyCode dashKeyCode = KeyCode.LeftShift;
+    [SerializeField] private KeyCode grappleKeyCode = KeyCode.LeftShift;
 
     [SerializeField] private float dashPower = 24f;
     [SerializeField] private float dashTime = 0.2f;
@@ -39,13 +41,13 @@ public class PlayerAbilities : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.LeftShift) && 
+        if (Input.GetKeyDown(dashKeyCode) && 
             slowMo.CurrentSelection == dashAbilityName && canDash)
         {
             if (currency.TrySpend(1)) StartCoroutine(PerformDash());
         }
 
-        if (Input.GetKeyDown(KeyCode.R) && 
+        if (Input.GetKeyDown(grappleKeyCode) && 
             slowMo.CurrentSelection == grappleAbilityName)
         {
             HandleGrapple();
