@@ -30,12 +30,12 @@ public class PlayerAnimator : MonoBehaviour
 
     private void HandleFlipping()
     {
-        if (abilities.IsWallSliding)
+        if (movement.IsWallSliding)
         {
             if (detection.IsWallLeft) transform.localScale = new Vector3(1, 1, 1);
             else if (detection.IsWallRight) transform.localScale = new Vector3(-1, 1, 1);
         }
-        else if (abilities.IsWallJumping)
+        else if (movement.IsWallJumping)
         {
             return;
         }
@@ -50,7 +50,7 @@ public class PlayerAnimator : MonoBehaviour
         anim.SetFloat(YVelocity, rb.linearVelocity.y);
         anim.SetBool(IsGrounded, detection.IsGrounded);
 
-        if (abilities.IsDashing && !abilities.IsWallJumping)
+        if (abilities.IsDashing && !movement.IsWallJumping)
         {
             _wasWallJumping = false;
             PlayAnimation(Dash);
@@ -64,7 +64,7 @@ public class PlayerAnimator : MonoBehaviour
             return;
         }
 
-        if (abilities.IsWallJumping || (_wasWallJumping && !detection.IsGrounded && rb.linearVelocity.y > -1f))
+        if (movement.IsWallJumping || (_wasWallJumping && !detection.IsGrounded && rb.linearVelocity.y > -1f))
         {
             _wasWallJumping = true;
             PlayAnimation(WallJump);
@@ -73,7 +73,7 @@ public class PlayerAnimator : MonoBehaviour
 
         _wasWallJumping = false;
 
-        if (abilities.IsWallSliding)
+        if (movement.IsWallSliding)
         {
             PlayAnimation(WallSlide);
             return;

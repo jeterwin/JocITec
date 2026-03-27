@@ -14,6 +14,7 @@ public class DialogueManager : MonoBehaviour
 
     private Queue<DialogueEntry> dialogueQueue;
     private Coroutine typingCoroutine;
+    private CharacterFollower companionToSpawn;
 
     void Awake()
     {
@@ -29,8 +30,10 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
-    public void StartDialogue(List<DialogueEntry> dialogueList)
+    public void StartDialogue(List<DialogueEntry> dialogueList, 
+        CharacterFollower companionToSpawn)
     {
+        this.companionToSpawn = companionToSpawn;
         dialoguePanel.SetActive(true);
         dialogueQueue.Clear();
 
@@ -75,6 +78,10 @@ public class DialogueManager : MonoBehaviour
 
     void EndDialogue()
     {
+        if(companionToSpawn)
+        {
+            CharacterUnlockerManager.Instance.UnlockCharacter(companionToSpawn);
+        }
         dialoguePanel.SetActive(false);
     }
 }

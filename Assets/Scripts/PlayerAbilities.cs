@@ -6,14 +6,18 @@ public class PlayerAbilities : MonoBehaviour
     [SerializeField] private SlowMotionController slowMo;
     [SerializeField] private CharacterMovement movement;
     [SerializeField] private PlayerDetection detection;
+    [SerializeField] private AbilityCurrency currency;
+
+    [SerializeField] private string jumpAbilityName = "Jump";
+    [SerializeField] private string grappleAbilityName = "Grapple";
+    [SerializeField] private string dashAbilityName = "Dash";
+
+    [SerializeField] private KeyCode dashKeyCode = KeyCode.LeftShift;
+    [SerializeField] private KeyCode grappleKeyCode = KeyCode.LeftShift;
 
     [SerializeField] private float dashPower = 24f;
     [SerializeField] private float dashTime = 0.2f;
     [SerializeField] private float dashCooldown = 1f;
-
-    [SerializeField] private float wallSlideSpeed = 1.5f;
-    [SerializeField] private Vector2 wallJumpForce = new Vector2(18f, 20f);
-    [SerializeField] private float wallJumpDuration = 0.2f;
 
     [SerializeField] private float grappleRange = 10f;
     [SerializeField] private float swingForce = 40f;
@@ -26,8 +30,6 @@ public class PlayerAbilities : MonoBehaviour
     private bool canDash = true;
 
     public bool IsDashing { get; private set; }
-    public bool IsWallSliding { get; private set; }
-    public bool IsWallJumping { get; private set; }
 
     private void Awake()
     {
@@ -39,34 +41,28 @@ public class PlayerAbilities : MonoBehaviour
 
     private void Update()
     {
-        IsWallSliding = (detection.IsWallLeft || detection.IsWallRight) && !detection.IsGrounded && rb.linearVelocity.y < 0;
-
-        if (Input.GetKeyDown(KeyCode.LeftShift) && slowMo.CurrentSelection == "Dash" && canDash)
+        if (Input.GetKeyDown(dashKeyCode) && 
+            slowMo.CurrentSelection == dashAbilityName && canDash)
         {
-            StartCoroutine(PerformDash());
+            if (currency.TrySpend(1)) StartCoroutine(PerformDash());
         }
 
-        if (Input.GetKeyDown(KeyCode.R) && slowMo.CurrentSelection == "Grapple")
+        if (Input.GetKeyDown(grappleKeyCode) && 
+            slowMo.CurrentSelection == grappleAbilityName)
         {
             HandleGrapple();
         }
 
         if (Input.GetButtonDown("Jump"))
         {
-            if (IsWallSliding)
-            {
-                StopCoroutine(nameof(PerformWallJump));
-                StartCoroutine(PerformWallJump());
-            }
-            else if (!detection.IsGrounded && movement.CoyoteCounter <= 0f && movement.CanDoubleJump && slowMo.CurrentSelection == "Jump")
-            {
-                PerformDoubleJump();
-            }
-        }
+            bool isMidAir = !detection.IsGrounded && !movement.IsWallSliding 
+                && movement.CoyoteCounter <= 0f;
 
-        if (IsWallSliding)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Clamp(rb.linearVelocity.y, -wallSlideSpeed, float.MaxValue));
+            if (isMidAir && movement.CanDoubleJump 
+                && slowMo.CurrentSelection == jumpAbilityName)
+            {
+                if (currency.TrySpend(1)) PerformDoubleJump();
+            }
         }
 
         if (isGrappling) ropeRenderer.SetPosition(0, transform.position);
@@ -92,15 +88,6 @@ public class PlayerAbilities : MonoBehaviour
         canDash = true;
     }
 
-    private IEnumerator PerformWallJump()
-    {
-        IsWallJumping = true;
-        float jumpDirection = detection.IsWallLeft ? 1 : -1;
-        rb.linearVelocity = new Vector2(jumpDirection * wallJumpForce.x, wallJumpForce.y);
-        yield return new WaitForSeconds(wallJumpDuration);
-        IsWallJumping = false;
-    }
-
     private void PerformDoubleJump()
     {
         movement.UseDoubleJump();
@@ -121,7 +108,7 @@ public class PlayerAbilities : MonoBehaviour
                 if (d < closestDist) { closestDist = d; bestTarget = t; }
             }
 
-            if (bestTarget != null)
+            if (bestTarget != null && currency.TrySpend(1))
             {
                 isGrappling = true;
                 grappleJoint.enabled = true;
