@@ -10802,7 +10802,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &127745450
 Transform:
   m_ObjectHideFlags: 0
@@ -41973,7 +41973,7 @@ Transform:
   m_GameObject: {fileID: 905392461}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -38.467297, y: 28.110989, z: -10}
+  m_LocalPosition: {x: -10, y: 5.250592, z: -9.970994}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -42096,9 +42096,9 @@ Camera:
     height: 1
   near clip plane: 0.1
   far clip plane: 5000
-  field of view: 1.94
+  field of view: 40
   orthographic: 1
-  orthographic size: 6.96
+  orthographic size: 6.5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -59301,7 +59301,7 @@ Transform:
   m_GameObject: {fileID: 1805440170}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -69.85, y: 29.7, z: 0}
+  m_LocalPosition: {x: -14.4, y: 0.4, z: 0}
   m_LocalScale: {x: 1.2, y: 1.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -59594,7 +59594,7 @@ DistanceJoint2D:
   m_Anchor: {x: 0, y: 0}
   m_ConnectedAnchor: {x: 0, y: 0}
   m_AutoConfigureDistance: 1
-  m_Distance: 75.90199
+  m_Distance: 14.405554
   m_MaxDistanceOnly: 0
 --- !u!50 &1805440184
 Rigidbody2D:
