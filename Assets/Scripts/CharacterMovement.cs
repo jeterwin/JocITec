@@ -134,6 +134,7 @@ public class CharacterMovement : MonoBehaviour
             _ => Color.white
         };
     }
+
     private void FixedUpdate()
     {
         if (!canMove)
@@ -209,13 +210,6 @@ public class CharacterMovement : MonoBehaviour
         }
     }
 
-    private Color GetColorFromHit(RaycastHit2D hit)
-    {
-        if (hit.collider.TryGetComponent(out SpriteRenderer sr)) return sr.color;
-        if (hit.collider.TryGetComponent(out Tilemap tm)) return tm.color;
-        return Color.white;
-    }
-
     public void ApplyJump()
     {
         AudioManager.Instance.PlayJump();
@@ -230,6 +224,9 @@ public class CharacterMovement : MonoBehaviour
     {
         IsWallJumping = true;
         jumpBufferCounter = 0f;
+
+        AudioManager.Instance.PlayWallJump();
+
         float jumpDirection = detection.IsWallLeft ? 1 : -1;
         rb.linearVelocity = new Vector2(jumpDirection * wallJumpForce.x, wallJumpForce.y);
         yield return new WaitForSeconds(wallJumpDuration);

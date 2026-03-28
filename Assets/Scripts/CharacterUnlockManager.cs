@@ -8,6 +8,7 @@ public class CharacterUnlockerManager : MonoBehaviour
     [SerializeField] private ParticleSystem swapSFX;
     [SerializeField] private PlayerAbilities playerAbilities;
     [SerializeField] private SpriteRenderer playerSR;
+    [SerializeField] private AudioSource audioSource;
 
     private List<CharacterFollower> activeFollowers = new List<CharacterFollower>();
     public List<CharacterFollower> ActiveFollowers => activeFollowers;
@@ -30,6 +31,11 @@ public class CharacterUnlockerManager : MonoBehaviour
             {
                 if (!activeFollowers.Contains(f)) activeFollowers.Add(f);
             }
+
+            if (lastSelection == "Speed")
+            {
+                playerSR.color = Color.white;
+            }
         }
     }
 
@@ -46,29 +52,39 @@ public class CharacterUnlockerManager : MonoBehaviour
 
     private void HandleVisualSwap(string newAbility)
     {
-        CharacterFollower fromFollower = activeFollowers.Find(f => f.AbilityName == lastSelection);
-        CharacterFollower toFollower = activeFollowers.Find(f => f.AbilityName == newAbility);
+        if (swapSFX != null) swapSFX.Play();
 
+        CharacterFollower fromFollower = activeFollowers.Find(f => f.AbilityName == lastSelection);
+
+        if (newAbility == "Speed")
+        {
+            if (fromFollower != null)
+            {
+                fromFollower.GetComponent<SpriteRenderer>().color = playerSR.color;
+            }
+            playerSR.color = Color.white;
+            return;
+        }
+
+        CharacterFollower toFollower = activeFollowers.Find(f => f.AbilityName == newAbility);
         if (toFollower == null) return;
 
-        if (swapSFX != null) swapSFX.Play();
+        SpriteRenderer toSR = toFollower.GetComponent<SpriteRenderer>();
+        Color targetColor = toSR.color;
 
         if (fromFollower != null)
         {
-            SpriteRenderer fromSR = fromFollower.GetComponent<SpriteRenderer>();
-            Color returnColor = playerSR.color;
-            playerSR.color = fromSR.color;
-            fromSR.color = returnColor;
+            fromFollower.GetComponent<SpriteRenderer>().color = playerSR.color;
         }
 
-        SpriteRenderer toSR = toFollower.GetComponent<SpriteRenderer>();
-        Color takeColor = toSR.color;
-        toSR.color = playerSR.color;
-        playerSR.color = takeColor;
+        playerSR.color = targetColor;
+        toSR.color = Color.white;
     }
 
     public void UnlockCharacter(CharacterFollower companionPrefab)
     {
+        if (activeFollowers.Exists(f => f.AbilityName == companionPrefab.AbilityName)) return;
+
         Transform playerTransform = CharacterMovement.Instance.transform;
 
         GameObject newCompanion = Instantiate(companionPrefab.gameObject,
@@ -77,10 +93,9 @@ public class CharacterUnlockerManager : MonoBehaviour
         CharacterFollower charFollower = newCompanion.GetComponent<CharacterFollower>();
         charFollower.SetTarget(playerTransform);
 
-        if (!activeFollowers.Contains(charFollower))
-        {
-            activeFollowers.Add(charFollower);
-        }
+        if (audioSource != null) audioSource.Play();
+
+        activeFollowers.Add(charFollower);
 
         if (playerAbilities != null)
         {
