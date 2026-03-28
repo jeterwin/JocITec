@@ -40,10 +40,17 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(transitionTime);
 
         player.transform.position = _currentCheckpoint;
+
         Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
         if (rb != null)
         {
             rb.linearVelocity = Vector2.zero;
+        }
+
+        CharacterMovement movement = player.GetComponent<CharacterMovement>();
+        if (movement != null)
+        {
+            movement.CanMove = true;
         }
 
         deathAnimator.Play("FadeOut");

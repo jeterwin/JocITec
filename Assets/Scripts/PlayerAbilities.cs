@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using Unity.Cinemachine;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class PlayerAbilities : MonoBehaviour
 {
@@ -13,6 +14,10 @@ public class PlayerAbilities : MonoBehaviour
     [SerializeField] private string jumpAbilityName = "Jump";
     [SerializeField] private string grappleAbilityName = "Grapple";
     [SerializeField] private string dashAbilityName = "Dash";
+
+    [SerializeField] private Button jumpButton;
+    [SerializeField] private Button grappleButton;
+    [SerializeField] private Button dashButton;
 
     [SerializeField] private KeyCode dashKeyCode = KeyCode.LeftShift;
     [SerializeField] private KeyCode grappleKeyCode = KeyCode.LeftShift;
@@ -46,6 +51,15 @@ public class PlayerAbilities : MonoBehaviour
         grappleJoint = GetComponent<DistanceJoint2D>();
         grappleJoint.enabled = false;
         ropeRenderer.enabled = false;
+
+        InitializeButtons();
+    }
+
+    private void InitializeButtons()
+    {
+        if (jumpButton != null) jumpButton.interactable = false;
+        if (grappleButton != null) grappleButton.interactable = false;
+        if (dashButton != null) dashButton.interactable = false;
     }
 
     private void Update()
@@ -106,6 +120,9 @@ public class PlayerAbilities : MonoBehaviour
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
         float dir = movement.HorizontalInput != 0 ? movement.HorizontalInput : transform.localScale.x;
+        
+        AudioManager.Instance.DashPlay();
+
         rb.linearVelocity = new Vector2(dir * dashPower, 0f);
         if (dashImpulse != null) dashImpulse.GenerateImpulse(new Vector3(dir, 0, 0));
         yield return new WaitForSeconds(dashTime);
@@ -118,6 +135,7 @@ public class PlayerAbilities : MonoBehaviour
     private void PerformDoubleJump()
     {
         movement.UseDoubleJump();
+        AudioManager.Instance.DoubleJumpPlay();
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, movement.JumpForce);
     }
 
@@ -137,6 +155,8 @@ public class PlayerAbilities : MonoBehaviour
 
             if (bestTarget != null && currency.TrySpend(1))
             {
+                AudioManager.Instance.GrapplePlay();
+
                 isGrappling = true;
                 grappleJoint.enabled = true;
                 grappleJoint.connectedAnchor = bestTarget.transform.position;
@@ -158,6 +178,14 @@ public class PlayerAbilities : MonoBehaviour
         if (!unlockedAbilities.Contains(name))
         {
             unlockedAbilities.Add(name);
+            UpdateButtonState(name, true);
         }
+    }
+
+    private void UpdateButtonState(string name, bool state)
+    {
+        if (name == jumpAbilityName && jumpButton != null) jumpButton.interactable = state;
+        else if (name == grappleAbilityName && grappleButton != null) grappleButton.interactable = state;
+        else if (name == dashAbilityName && dashButton != null) dashButton.interactable = state;
     }
 }

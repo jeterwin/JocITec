@@ -4,6 +4,7 @@ public class Checkpoint : MonoBehaviour
 {
     [SerializeField] private Animator anim;
     [SerializeField] private ParticleSystem checkpointVFX;
+    [SerializeField] private int coinsReward = 1;
     private bool isActivated;
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -22,6 +23,8 @@ public class Checkpoint : MonoBehaviour
         {
             GameManager.Instance.UpdateCheckpoint(transform.position);
         }
+
+        AbilityCurrency.Instance.AddCoins(coinsReward);
 
         if (anim != null)
         {

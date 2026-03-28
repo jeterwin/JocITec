@@ -223,6 +223,8 @@ public class CharacterMovement : MonoBehaviour
 
     public void ApplyJump()
     {
+        AudioManager.Instance.PlayJump();
+
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         coyoteCounter = 0f;
