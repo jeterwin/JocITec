@@ -12,9 +12,13 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private GameObject dialoguePanel;
     [SerializeField] private float typingSpeed = 0.05f;
 
+    [SerializeField] private float trembleAmount = 5f;
+    [SerializeField] private float trembleSpeed = 20f;
+
     private Queue<DialogueEntry> dialogueQueue;
     private Coroutine typingCoroutine;
     private CharacterFollower companionToSpawn;
+    private bool isDialogueActive;
 
     void Awake()
     {
@@ -28,15 +32,20 @@ public class DialogueManager : MonoBehaviour
         {
             DisplayNextSentence();
         }
+
+        if (isDialogueActive)
+        {
+            ApplyTrembleEffect();
+        }
     }
 
-    public void StartDialogue(List<DialogueEntry> dialogueList, 
-        CharacterFollower companionToSpawn)
+    public void StartDialogue(List<DialogueEntry> dialogueList, CharacterFollower companionToSpawn)
     {
         PauseMenu.Instance.CanPause = false;
         CharacterMovement.Instance.CanMove = false;
         this.companionToSpawn = companionToSpawn;
         dialoguePanel.SetActive(true);
+        isDialogueActive = true;
         dialogueQueue.Clear();
 
         foreach (DialogueEntry entry in dialogueList)
@@ -70,20 +79,57 @@ public class DialogueManager : MonoBehaviour
 
     IEnumerator TypeSentence(string sentence)
     {
-        dialogueText.text = "";
-        foreach (char letter in sentence.ToCharArray())
+        dialogueText.text = sentence;
+        dialogueText.maxVisibleCharacters = 0;
+
+        for (int i = 0; i <= sentence.Length; i++)
         {
-            dialogueText.text += letter;
+            dialogueText.maxVisibleCharacters = i;
             yield return new WaitForSeconds(typingSpeed);
+        }
+
+        typingCoroutine = null;
+    }
+
+    private void ApplyTrembleEffect()
+    {
+        dialogueText.ForceMeshUpdate();
+        TMP_TextInfo textInfo = dialogueText.textInfo;
+
+        for (int i = 0; i < textInfo.characterCount; i++)
+        {
+            TMP_CharacterInfo charInfo = textInfo.characterInfo[i];
+
+            if (!charInfo.isVisible) continue;
+
+            int materialIndex = charInfo.materialReferenceIndex;
+            int vertexIndex = charInfo.vertexIndex;
+
+            Vector3[] sourceVertices = textInfo.meshInfo[materialIndex].vertices;
+
+            float offset = Mathf.Sin(Time.time * trembleSpeed + i) * trembleAmount;
+            Vector3 translation = new Vector3(0, offset, 0);
+
+            sourceVertices[vertexIndex + 0] += translation;
+            sourceVertices[vertexIndex + 1] += translation;
+            sourceVertices[vertexIndex + 2] += translation;
+            sourceVertices[vertexIndex + 3] += translation;
+        }
+
+        for (int i = 0; i < textInfo.meshInfo.Length; i++)
+        {
+            textInfo.meshInfo[i].mesh.vertices = textInfo.meshInfo[i].vertices;
+            dialogueText.UpdateGeometry(textInfo.meshInfo[i].mesh, i);
         }
     }
 
     void EndDialogue()
     {
-        if(companionToSpawn)
+        if (companionToSpawn)
         {
             CharacterUnlockerManager.Instance.UnlockCharacter(companionToSpawn);
         }
+        isDialogueActive = false;
         PauseMenu.Instance.CanPause = true;
         CharacterMovement.Instance.CanMove = true;
         dialoguePanel.SetActive(false);
