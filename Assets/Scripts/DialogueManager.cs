@@ -33,6 +33,8 @@ public class DialogueManager : MonoBehaviour
     public void StartDialogue(List<DialogueEntry> dialogueList, 
         CharacterFollower companionToSpawn)
     {
+        PauseMenu.Instance.CanPause = false;
+        CharacterMovement.Instance.CanMove = false;
         this.companionToSpawn = companionToSpawn;
         dialoguePanel.SetActive(true);
         dialogueQueue.Clear();
@@ -82,6 +84,8 @@ public class DialogueManager : MonoBehaviour
         {
             CharacterUnlockerManager.Instance.UnlockCharacter(companionToSpawn);
         }
+        PauseMenu.Instance.CanPause = true;
+        CharacterMovement.Instance.CanMove = true;
         dialoguePanel.SetActive(false);
     }
 }

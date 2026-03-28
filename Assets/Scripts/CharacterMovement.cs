@@ -19,6 +19,7 @@ public class CharacterMovement : MonoBehaviour
     [SerializeField] private ParticleSystem walkParticles;
     [SerializeField] private ParticleSystem wallSlideParticles;
     [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private bool canMove = true;
 
     private Rigidbody2D rb;
     private PlayerDetection detection;
@@ -34,6 +35,7 @@ public class CharacterMovement : MonoBehaviour
 
     public float HorizontalInput => horizontalInput;
     public bool IsDoubleJumping { get; private set; }
+    public bool CanMove { get => canMove; set => canMove = value; }
     public bool CanDoubleJump => canDoubleJump;
     public float JumpForce => jumpForce;
     public float CoyoteCounter => coyoteCounter;
@@ -61,12 +63,16 @@ public class CharacterMovement : MonoBehaviour
 
     private void Update()
     {
+        if (!canMove) return;
+
         horizontalInput = Input.GetAxisRaw("Horizontal");
-        IsWallSliding = (detection.IsWallLeft || detection.IsWallRight) && !detection.IsGrounded && rb.linearVelocity.y < 0;
+
+        bool isTouchingWall = (detection.IsWallLeft || detection.IsWallRight);
+        IsWallSliding = isTouchingWall && !detection.IsGrounded && rb.linearVelocity.y <= 0.1f;
 
         HandleParticles();
 
-        if (detection.IsGrounded)
+        if (detection.IsGrounded || IsWallSliding)
         {
             coyoteCounter = coyoteTime;
             canDoubleJump = true;
@@ -79,8 +85,8 @@ public class CharacterMovement : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
-            if (coyoteCounter > 0f) ApplyJump();
-            else if (IsWallSliding)
+            if (coyoteCounter > 0f && !IsWallSliding) ApplyJump();
+            else if (IsWallSliding || isTouchingWall)
             {
                 StopCoroutine(nameof(PerformWallJump));
                 StartCoroutine(PerformWallJump());
@@ -91,12 +97,26 @@ public class CharacterMovement : MonoBehaviour
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y * 0.5f);
 
         if (IsWallSliding && !IsWallJumping)
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Clamp(rb.linearVelocity.y, -wallSlideSpeed, float.MaxValue));
+        {
+            rb.linearVelocity = new Vector2(0, Mathf.Max(rb.linearVelocity.y, -wallSlideSpeed));
+        }
     }
 
     private void FixedUpdate()
     {
+        if (!canMove)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
         if (IsWallJumping || (abilities != null && abilities.IsDashing)) return;
+
+        if (IsWallSliding)
+        {
+            rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
+            return;
+        }
 
         float targetSpeed = horizontalInput * maxSpeed;
         float speedDif = targetSpeed - rb.linearVelocity.x;
@@ -146,18 +166,8 @@ public class CharacterMovement : MonoBehaviour
 
     private Color GetColorFromHit(RaycastHit2D hit)
     {
-        if (hit.collider.TryGetComponent(out SpriteRenderer sr))
-        {
-            Debug.Log("Hit Sprite: " + hit.collider.name + " Color: " + sr.color);
-            return sr.color;
-        }
-        if (hit.collider.TryGetComponent(out Tilemap tm))
-        {
-            Debug.Log("Hit Tilemap: " + hit.collider.name + " Color: " + tm.color);
-            return tm.color;
-        }
-
-        Debug.Log("Hit Ground but no Renderer found on: " + hit.collider.name);
+        if (hit.collider.TryGetComponent(out SpriteRenderer sr)) return sr.color;
+        if (hit.collider.TryGetComponent(out Tilemap tm)) return tm.color;
         return Color.white;
     }
 
@@ -171,6 +181,8 @@ public class CharacterMovement : MonoBehaviour
     private IEnumerator PerformWallJump()
     {
         IsWallJumping = true;
+        IsDoubleJumping = false;
+        canDoubleJump = true;
         float jumpDirection = detection.IsWallLeft ? 1 : -1;
         rb.linearVelocity = new Vector2(jumpDirection * wallJumpForce.x, wallJumpForce.y);
         yield return new WaitForSeconds(wallJumpDuration);

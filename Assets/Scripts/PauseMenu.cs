@@ -3,12 +3,24 @@ using UnityEngine.SceneManagement;
 
 public class PauseMenu : MonoBehaviour
 {
+    public static PauseMenu Instance { get; private set; }
+    public bool IsPause { get { return isPaused; } set { isPaused = value; } }
+    public bool CanPause { get { return canPause; } set {  canPause = value; } }
+
     public GameObject pauseMenuUI;
+
     private bool isPaused = false;
+    private bool canPause = true;
+
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape) && canPause)
         {
             if (isPaused)
             {
