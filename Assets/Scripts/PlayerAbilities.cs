@@ -30,6 +30,7 @@ public class PlayerAbilities : MonoBehaviour
     [SerializeField] private float swingForce = 40f;
     [SerializeField] private LayerMask grappleLayer;
     [SerializeField] private LineRenderer ropeRenderer;
+    [SerializeField] private GameObject grappleIndicator;
 
     [SerializeField] private CinemachineImpulseSource dashImpulse;
 
@@ -42,6 +43,8 @@ public class PlayerAbilities : MonoBehaviour
     private string currentSelection = "None";
     private string pendingSelection = "None";
 
+    private List<Collider2D> targetsInRange = new();
+
     public string CurrentSelection => currentSelection;
     public bool IsDashing { get; private set; }
 
@@ -51,6 +54,8 @@ public class PlayerAbilities : MonoBehaviour
         grappleJoint = GetComponent<DistanceJoint2D>();
         grappleJoint.enabled = false;
         ropeRenderer.enabled = false;
+
+        if (grappleIndicator != null) grappleIndicator.SetActive(false);
 
         InitializeButtons();
     }
@@ -97,6 +102,46 @@ public class PlayerAbilities : MonoBehaviour
         if (isGrappling) rb.AddForce(new Vector2(movement.HorizontalInput * swingForce, 0));
     }
 
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Grapple"))
+        {
+            if (!targetsInRange.Contains(other))
+            {
+                targetsInRange.Add(other);
+                grappleIndicator.SetActive(true);
+            }
+        }
+    }
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Grapple"))
+        {
+            targetsInRange.Remove(other);
+            grappleIndicator.SetActive(false);
+        }
+    }
+
+    private Collider2D GetBestGrappleTarget()
+    {
+        targetsInRange.RemoveAll(item => item == null || !item.gameObject.activeInHierarchy);
+
+        Collider2D bestTarget = null;
+        float closestDist = float.MaxValue;
+
+        foreach (var t in targetsInRange)
+        {
+            float d = Vector2.Distance(transform.position, t.transform.position);
+            if (d < closestDist)
+            {
+                closestDist = d;
+                bestTarget = t;
+            }
+        }
+
+        return bestTarget;
+    }
+
     public void SetPendingSelection(string name)
     {
         if (unlockedAbilities.Contains(name))
@@ -120,7 +165,7 @@ public class PlayerAbilities : MonoBehaviour
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
         float dir = movement.HorizontalInput != 0 ? movement.HorizontalInput : transform.localScale.x;
-        
+
         AudioManager.Instance.DashPlay();
 
         rb.linearVelocity = new Vector2(dir * dashPower, 0f);
@@ -143,15 +188,7 @@ public class PlayerAbilities : MonoBehaviour
     {
         if (!isGrappling)
         {
-            Collider2D[] targets = Physics2D.OverlapCircleAll(transform.position, grappleRange, grappleLayer);
-            Collider2D bestTarget = null;
-            float closestDist = float.MaxValue;
-
-            foreach (var t in targets)
-            {
-                float d = Vector2.Distance(transform.position, t.transform.position);
-                if (d < closestDist) { closestDist = d; bestTarget = t; }
-            }
+            Collider2D bestTarget = GetBestGrappleTarget();
 
             if (bestTarget != null && currency.TrySpend(1))
             {
@@ -163,6 +200,8 @@ public class PlayerAbilities : MonoBehaviour
                 grappleJoint.distance = Vector2.Distance(transform.position, bestTarget.transform.position);
                 ropeRenderer.enabled = true;
                 ropeRenderer.SetPosition(1, bestTarget.transform.position);
+
+                if (grappleIndicator != null) grappleIndicator.SetActive(false);
             }
         }
         else

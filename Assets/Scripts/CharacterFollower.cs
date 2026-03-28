@@ -7,6 +7,7 @@ public class CharacterFollower : MonoBehaviour
 
     [SerializeField] private float spacing = 0.15f;
     [SerializeField] private float moveSpeed = 12f;
+    [SerializeField] private float teleportThreshold = 5f;
     [SerializeField] private string abilityName;
 
     private Transform playerTransform;
@@ -39,9 +40,9 @@ public class CharacterFollower : MonoBehaviour
     {
         playerTransform = target;
         playerAnimator = target.GetComponent<Animator>();
-        
+
         spacing = spacing * (CharacterUnlockerManager.Instance.ActiveFollowers.Count + 1);
-        
+
         RecordFrame();
     }
 
@@ -55,10 +56,16 @@ public class CharacterFollower : MonoBehaviour
         {
             float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
+            if (distanceToPlayer > teleportThreshold)
+            {
+                SnapToPlayer();
+                return;
+            }
+
             if (distanceToPlayer > spacing)
             {
                 Snapshot targetFrame = history[0];
-                
+
                 transform.position = Vector3.MoveTowards(transform.position, targetFrame.position, moveSpeed * Time.deltaTime);
                 transform.localScale = targetFrame.scale;
 
@@ -78,7 +85,7 @@ public class CharacterFollower : MonoBehaviour
     private void RecordFrame()
     {
         var state = playerAnimator.GetCurrentAnimatorStateInfo(0);
-        
+
         Snapshot currentFrame = new Snapshot(
             playerTransform.position,
             playerTransform.localScale,
@@ -86,9 +93,39 @@ public class CharacterFollower : MonoBehaviour
             state.normalizedTime
         );
 
-        if (history.Count == 0 || Vector3.Distance(history[history.Count - 1].position, currentFrame.position) > 0.05f)
+        if (history.Count > 0)
+        {
+            float distFromLastFrame = Vector3.Distance(history[history.Count - 1].position, currentFrame.position);
+
+            if (distFromLastFrame > teleportThreshold)
+            {
+                SnapToPlayer();
+                return;
+            }
+
+            if (distFromLastFrame > 0.05f)
+            {
+                history.Add(currentFrame);
+            }
+        }
+        else
         {
             history.Add(currentFrame);
         }
+    }
+
+    public void SnapToPlayer()
+    {
+        history.Clear();
+        transform.position = playerTransform.position;
+        transform.localScale = playerTransform.localScale;
+
+        var state = playerAnimator.GetCurrentAnimatorStateInfo(0);
+        if (myAnimator != null)
+        {
+            myAnimator.Play(state.fullPathHash, 0, state.normalizedTime);
+        }
+
+        RecordFrame();
     }
 }

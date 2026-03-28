@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class PlayerHealth : MonoBehaviour
 
     [SerializeField] private ParticleSystem deathSFX;
     [SerializeField] private AudioSource deathSource;
+    [SerializeField] private List<AudioClip> deathClips;
     [SerializeField] private Animator fadeAnimator;
 
     [SerializeField] private CharacterMovement movement;
@@ -41,7 +43,12 @@ public class PlayerHealth : MonoBehaviour
         rb.AddForce(Vector2.up * deathJumpForce, ForceMode2D.Impulse);
 
         deathSFX.Play();
-        if (deathSource != null) deathSource.Play();
+
+        if (deathSource != null && deathClips.Count > 0)
+        {
+            AudioClip clip = deathClips[Random.Range(0, deathClips.Count)];
+            deathSource.PlayOneShot(clip);
+        }
 
         for (int i = 0; i < blinkCount; i++)
         {

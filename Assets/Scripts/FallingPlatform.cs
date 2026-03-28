@@ -9,6 +9,7 @@ public class OneWayFallingPlatform : MonoBehaviour
 
     private Rigidbody2D rb;
     private Vector2 startPos;
+    private Quaternion startRot;
     private bool isFalling = false;
     private Collider2D col;
     private SpriteRenderer sr;
@@ -19,6 +20,7 @@ public class OneWayFallingPlatform : MonoBehaviour
         col = GetComponent<Collider2D>();
         sr = GetComponent<SpriteRenderer>();
         startPos = transform.position;
+        startRot = transform.rotation;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -43,7 +45,7 @@ public class OneWayFallingPlatform : MonoBehaviour
         float timer = 0;
         while (timer < fallDelay)
         {
-            transform.position = startPos + Random.insideUnitCircle * shakeMagnitude;
+            transform.position = startPos + (Vector2)Random.insideUnitCircle * shakeMagnitude;
             timer += Time.deltaTime;
             yield return null;
         }
@@ -52,16 +54,17 @@ public class OneWayFallingPlatform : MonoBehaviour
 
         yield return new WaitForSeconds(respawnDelay);
 
-        //sr.enabled = false;
         col.enabled = false;
 
         rb.bodyType = RigidbodyType2D.Kinematic;
         rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+
         transform.position = startPos;
+        transform.rotation = startRot;
 
         yield return new WaitForSeconds(1.0f);
 
-        //sr.enabled = true;
         col.enabled = true;
         isFalling = false;
     }
