@@ -28,6 +28,9 @@ public class PlayerAbilities : MonoBehaviour
 
     [SerializeField] private float grappleRange = 10f;
     [SerializeField] private float swingForce = 40f;
+    [SerializeField] private float grappleJumpBoost = 2f;
+    [SerializeField] private float verticalLaunchForce = 2f;
+
     [SerializeField] private LayerMask grappleLayer;
     [SerializeField] private LineRenderer ropeRenderer;
     [SerializeField] private GameObject grappleIndicator;
@@ -69,10 +72,7 @@ public class PlayerAbilities : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyUp(KeyCode.Q))
-        {
-            ConfirmSelection();
-        }
+        if (Input.GetKeyUp(KeyCode.Q)) ConfirmSelection();
 
         if (Input.GetKeyDown(dashKeyCode) && currentSelection == dashAbilityName && canDash)
         {
@@ -86,8 +86,14 @@ public class PlayerAbilities : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
-            bool isMidAir = !detection.IsGrounded && !movement.IsWallSliding && movement.CoyoteCounter <= 0f;
+            // NEW: Launch player if they jump while grappling
+            if (isGrappling)
+            {
+                LaunchFromGrapple();
+                return;
+            }
 
+            bool isMidAir = !detection.IsGrounded && !movement.IsWallSliding && movement.CoyoteCounter <= 0f;
             if (isMidAir && movement.CanDoubleJump && currentSelection == jumpAbilityName)
             {
                 if (currency.TrySpend(1)) PerformDoubleJump();
@@ -99,7 +105,15 @@ public class PlayerAbilities : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (isGrappling) rb.AddForce(new Vector2(movement.HorizontalInput * swingForce, 0));
+        if (isGrappling)
+        {
+            // Apply horizontal force to swing
+            rb.AddForce(new Vector2(movement.HorizontalInput * swingForce, 0));
+
+            // SLIGHT UPWARD BIAS: Makes the swing feel less "heavy" at the bottom
+            if (rb.linearVelocity.y < 0)
+                rb.AddForce(Vector2.up * (swingForce * 0.2f));
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -219,6 +233,22 @@ public class PlayerAbilities : MonoBehaviour
             unlockedAbilities.Add(name);
             UpdateButtonState(name, true);
         }
+    }
+
+    private void LaunchFromGrapple()
+    {
+        isGrappling = false;
+        grappleJoint.enabled = false;
+        ropeRenderer.enabled = false;
+
+        // Apply the "Jump" kick
+        // We multiply horizontal velocity to keep momentum and add a flat vertical force
+        float newX = rb.linearVelocity.x * grappleJumpBoost;
+        float newY = Mathf.Max(rb.linearVelocity.y, 0) + verticalLaunchForce;
+
+        rb.linearVelocity = new Vector2(newX, newY);
+
+        AudioManager.Instance.DoubleJumpPlay(); // Use jump sound for feedback
     }
 
     private void UpdateButtonState(string name, bool state)

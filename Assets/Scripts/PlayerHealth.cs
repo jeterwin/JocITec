@@ -19,6 +19,7 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] private SpriteRenderer sr;
 
     private bool isDead;
+    private Color originalColor;
 
     public void Die()
     {
@@ -39,10 +40,12 @@ public class PlayerHealth : MonoBehaviour
         isDead = true;
         movement.CanMove = false;
 
+        originalColor = sr.color;
+
         rb.linearVelocity = Vector2.zero;
         rb.AddForce(Vector2.up * deathJumpForce, ForceMode2D.Impulse);
 
-        deathSFX.Play();
+        if (deathSFX != null) deathSFX.Play();
 
         if (deathSource != null && deathClips.Count > 0)
         {
@@ -54,7 +57,7 @@ public class PlayerHealth : MonoBehaviour
         {
             sr.color = Color.red;
             yield return new WaitForSeconds(blinkDuration);
-            sr.color = Color.white;
+            sr.color = originalColor;
             yield return new WaitForSeconds(blinkDuration);
         }
 
@@ -62,7 +65,7 @@ public class PlayerHealth : MonoBehaviour
 
         GameManager.Instance.Respawn(gameObject);
 
-        sr.color = Color.white;
+        sr.color = originalColor;
         isDead = false;
     }
 
