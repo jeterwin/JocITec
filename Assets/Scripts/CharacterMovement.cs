@@ -83,7 +83,7 @@ public class CharacterMovement : MonoBehaviour
         HandleParticles();
         AdjustGravity();
 
-        if (detection.IsGrounded)
+        if (detection.IsGrounded && rb.linearVelocity.y <= 0.01f)
         {
             coyoteCounter = coyoteTime;
             canDoubleJump = true;
