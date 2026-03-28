@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 public class PlayerHealth : MonoBehaviour
 {
+    public static PlayerHealth Instance;
+    public bool IsDead => isDead;
+
     [SerializeField] private float deathJumpForce = 12f;
     [SerializeField] private float blinkDuration = 0.1f;
     [SerializeField] private int blinkCount = 2;
@@ -19,8 +22,13 @@ public class PlayerHealth : MonoBehaviour
     [SerializeField] private SpriteRenderer sr;
 
     private bool isDead;
+
     private Color originalColor;
 
+    private void Awake()
+    {
+        Instance = this;
+    }
     public void Die()
     {
         if (isDead) return;

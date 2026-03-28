@@ -17,9 +17,39 @@ public class PlayerDetection : MonoBehaviour
 
     private void Update()
     {
-        IsGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-        IsWallLeft = Physics2D.Raycast(wallCheckLeft.position, Vector2.left, wallCheckDistance, groundLayer);
-        IsWallRight = Physics2D.Raycast(wallCheckRight.position, Vector2.right, wallCheckDistance, groundLayer);
+        IsGrounded = CheckGround();
+        IsWallLeft = CheckWall(wallCheckLeft.position, Vector2.left);
+        IsWallRight = CheckWall(wallCheckRight.position, Vector2.right);
+    }
+
+    private bool CheckGround()
+    {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheck.position, groundCheckRadius);
+        foreach (var col in colliders)
+        {
+            if (col.gameObject == gameObject || col.isTrigger) continue;
+
+            if (col.CompareTag("Platform") || (groundLayer.value & (1 << col.gameObject.layer)) != 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool CheckWall(Vector2 pos, Vector2 direction)
+    {
+        RaycastHit2D[] hits = Physics2D.RaycastAll(pos, direction, wallCheckDistance);
+        foreach (var hit in hits)
+        {
+            if (hit.collider.gameObject == gameObject || hit.collider.isTrigger) continue;
+
+            if (hit.collider.CompareTag("Platform") || (groundLayer.value & (1 << hit.collider.gameObject.layer)) != 0)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void OnDrawGizmosSelected()

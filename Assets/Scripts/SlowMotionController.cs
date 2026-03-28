@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections.Generic;
 
 public class SlowMotionController : MonoBehaviour
 {
@@ -8,6 +7,10 @@ public class SlowMotionController : MonoBehaviour
 
     void Update()
     {
+        if(PlayerHealth.Instance == null) return;
+
+        if (PlayerHealth.Instance.IsDead) return;
+
         if (Input.GetKeyDown(KeyCode.Q))
         {
             StartSlowMotion();

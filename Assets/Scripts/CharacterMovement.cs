@@ -122,6 +122,18 @@ public class CharacterMovement : MonoBehaviour
         }
     }
 
+    private Color GetSelectionColor()
+    {
+        if (abilities == null) return Color.white;
+
+        return abilities.CurrentSelection switch
+        {
+            "Jump" => Color.magenta,
+            "Dash" => Color.green,
+            "Grapple" => Color.yellow,
+            _ => Color.white
+        };
+    }
     private void FixedUpdate()
     {
         if (!canMove)
@@ -176,38 +188,21 @@ public class CharacterMovement : MonoBehaviour
 
     private void HandleParticles()
     {
+        Color modeColor = GetSelectionColor();
+
         if (walkParticles != null)
         {
             bool isWalking = detection.IsGrounded && Mathf.Abs(horizontalInput) > 0.1f;
             walkEmission.enabled = isWalking;
-
-            if (isWalking)
-            {
-                Vector2 rayStart = (Vector2)transform.position;
-                RaycastHit2D hit = Physics2D.Raycast(rayStart, Vector2.down, 1.5f, groundLayer);
-
-                if (hit.collider != null)
-                {
-                    walkMain.startColor = GetColorFromHit(hit);
-                }
-            }
+            if (isWalking) walkMain.startColor = modeColor;
         }
 
         if (wallSlideParticles != null)
         {
             wallEmission.enabled = IsWallSliding;
-
             if (IsWallSliding)
             {
-                Vector2 rayDir = detection.IsWallLeft ? Vector2.left : Vector2.right;
-                Vector2 rayStart = (Vector2)transform.position + (rayDir * 0.2f);
-                RaycastHit2D hit = Physics2D.Raycast(rayStart, rayDir, 1.5f, groundLayer);
-
-                if (hit.collider != null)
-                {
-                    wallMain.startColor = GetColorFromHit(hit);
-                }
-
+                wallMain.startColor = modeColor;
                 float rotY = detection.IsWallLeft ? 90f : -90f;
                 wallSlideParticles.transform.rotation = Quaternion.Euler(0, rotY, 0);
             }
