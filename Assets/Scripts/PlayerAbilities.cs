@@ -11,6 +11,8 @@ public class PlayerAbilities : MonoBehaviour
     [SerializeField] private PlayerDetection detection;
     [SerializeField] private AbilityCurrency currency;
 
+    [SerializeField] private AudioSource audioSource;
+
     [SerializeField] private string jumpAbilityName = "Jump";
     [SerializeField] private string grappleAbilityName = "Grapple";
     [SerializeField] private string dashAbilityName = "Dash";
@@ -56,6 +58,10 @@ public class PlayerAbilities : MonoBehaviour
         grappleJoint = GetComponent<DistanceJoint2D>();
         grappleJoint.enabled = false;
         ropeRenderer.enabled = false;
+
+        unlockedAbilities.Add("Speed");
+        currentSelection = "Speed";
+        pendingSelection = "Speed";
 
         InitializeButtons();
     }
@@ -165,6 +171,7 @@ public class PlayerAbilities : MonoBehaviour
     {
         if (pendingSelection != currentSelection)
         {
+            audioSource.Play();
             currentSelection = pendingSelection;
         }
     }

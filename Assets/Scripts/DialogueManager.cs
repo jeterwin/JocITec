@@ -15,6 +15,12 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private float trembleAmount = 5f;
     [SerializeField] private float trembleSpeed = 20f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip typingSound;
+    [SerializeField] private float minPitch = 0.9f;
+    [SerializeField] private float maxPitch = 1.1f;
+
     private Queue<DialogueEntry> dialogueQueue;
     private Coroutine typingCoroutine;
     private CharacterFollower companionToSpawn;
@@ -58,6 +64,17 @@ public class DialogueManager : MonoBehaviour
 
     public void DisplayNextSentence()
     {
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+            typingCoroutine = null;
+        }
+
+        if (audioSource != null)
+        {
+            audioSource.Stop();
+        }
+
         if (dialogueQueue.Count == 0)
         {
             EndDialogue();
@@ -68,11 +85,6 @@ public class DialogueManager : MonoBehaviour
 
         nameText.text = currentEntry.characterName;
         iconImage.sprite = currentEntry.characterIcon;
-
-        if (typingCoroutine != null)
-        {
-            StopCoroutine(typingCoroutine);
-        }
 
         typingCoroutine = StartCoroutine(TypeSentence(currentEntry.sentence));
     }
@@ -85,10 +97,25 @@ public class DialogueManager : MonoBehaviour
         for (int i = 0; i <= sentence.Length; i++)
         {
             dialogueText.maxVisibleCharacters = i;
+
+            if (i > 0 && i < sentence.Length && !char.IsWhiteSpace(sentence[i - 1]))
+            {
+                PlayTypingSound();
+            }
+
             yield return new WaitForSeconds(typingSpeed);
         }
 
         typingCoroutine = null;
+    }
+
+    private void PlayTypingSound()
+    {
+        if (audioSource == null || typingSound == null || !isDialogueActive) return;
+
+        audioSource.clip = typingSound;
+        audioSource.pitch = Random.Range(minPitch, maxPitch);
+        audioSource.Play();
     }
 
     private void ApplyTrembleEffect()
@@ -105,15 +132,15 @@ public class DialogueManager : MonoBehaviour
             int materialIndex = charInfo.materialReferenceIndex;
             int vertexIndex = charInfo.vertexIndex;
 
-            Vector3[] sourceVertices = textInfo.meshInfo[materialIndex].vertices;
+            Vector3[] vertices = textInfo.meshInfo[materialIndex].vertices;
 
             float offset = Mathf.Sin(Time.time * trembleSpeed + i) * trembleAmount;
             Vector3 translation = new Vector3(0, offset, 0);
 
-            sourceVertices[vertexIndex + 0] += translation;
-            sourceVertices[vertexIndex + 1] += translation;
-            sourceVertices[vertexIndex + 2] += translation;
-            sourceVertices[vertexIndex + 3] += translation;
+            vertices[vertexIndex + 0] += translation;
+            vertices[vertexIndex + 1] += translation;
+            vertices[vertexIndex + 2] += translation;
+            vertices[vertexIndex + 3] += translation;
         }
 
         for (int i = 0; i < textInfo.meshInfo.Length; i++)
@@ -125,11 +152,24 @@ public class DialogueManager : MonoBehaviour
 
     void EndDialogue()
     {
+        isDialogueActive = false;
+
+        if (typingCoroutine != null)
+        {
+            StopCoroutine(typingCoroutine);
+            typingCoroutine = null;
+        }
+
+        if (audioSource != null)
+        {
+            audioSource.Stop();
+        }
+
         if (companionToSpawn)
         {
             CharacterUnlockerManager.Instance.UnlockCharacter(companionToSpawn);
         }
-        isDialogueActive = false;
+
         PauseMenu.Instance.CanPause = true;
         CharacterMovement.Instance.CanMove = true;
         dialoguePanel.SetActive(false);

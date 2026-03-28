@@ -8,6 +8,7 @@ public class AudioManager : MonoBehaviour
     [SerializeField] private AudioSource grappleSource;
     [SerializeField] private AudioSource coinGrapSource;
     [SerializeField] private AudioSource jumpSource;
+    [SerializeField] private AudioSource wallJumpSource;
     [SerializeField] private AudioSource doubleJumpSource;
     [SerializeField] private AudioSource deathSource;
 
@@ -24,6 +25,11 @@ public class AudioManager : MonoBehaviour
     public void PlayJump()
     {
         jumpSource.Play();
+    }
+
+    public void PlayWallJump()
+    {
+        wallJumpSource.Play();
     }
 
     public void DoubleJumpPlay()
