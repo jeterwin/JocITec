@@ -33,7 +33,6 @@ public class PlayerAbilities : MonoBehaviour
 
     [SerializeField] private LayerMask grappleLayer;
     [SerializeField] private LineRenderer ropeRenderer;
-    [SerializeField] private GameObject grappleIndicator;
 
     [SerializeField] private CinemachineImpulseSource dashImpulse;
 
@@ -57,8 +56,6 @@ public class PlayerAbilities : MonoBehaviour
         grappleJoint = GetComponent<DistanceJoint2D>();
         grappleJoint.enabled = false;
         ropeRenderer.enabled = false;
-
-        if (grappleIndicator != null) grappleIndicator.SetActive(false);
 
         InitializeButtons();
     }
@@ -125,7 +122,6 @@ public class PlayerAbilities : MonoBehaviour
             if (!targetsInRange.Contains(other))
             {
                 targetsInRange.Add(other);
-                grappleIndicator.SetActive(true);
             }
         }
     }
@@ -134,7 +130,6 @@ public class PlayerAbilities : MonoBehaviour
         if (other.CompareTag("Grapple"))
         {
             targetsInRange.Remove(other);
-            grappleIndicator.SetActive(false);
         }
     }
 
@@ -216,8 +211,6 @@ public class PlayerAbilities : MonoBehaviour
                 grappleJoint.distance = Vector2.Distance(transform.position, bestTarget.transform.position);
                 ropeRenderer.enabled = true;
                 ropeRenderer.SetPosition(1, bestTarget.transform.position);
-
-                if (grappleIndicator != null) grappleIndicator.SetActive(false);
             }
         }
         else
