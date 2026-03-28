@@ -10,6 +10,8 @@ public class PlayerAnimator : MonoBehaviour
     [SerializeField] private Animator anim;
     [SerializeField] private Rigidbody2D rb;
 
+    private Vector3 originalScale;
+
     private static readonly int Idle = Animator.StringToHash("Idle");
     private static readonly int Walk = Animator.StringToHash("Walk");
     private static readonly int Jump = Animator.StringToHash("Jump");
@@ -22,6 +24,11 @@ public class PlayerAnimator : MonoBehaviour
 
     private bool _wasWallJumping;
 
+    private void Start()
+    {
+        originalScale = transform.localScale;
+    }
+
     private void Update()
     {
         HandleFlipping();
@@ -32,8 +39,9 @@ public class PlayerAnimator : MonoBehaviour
     {
         if (movement.IsWallSliding)
         {
-            if (detection.IsWallLeft) transform.localScale = new Vector3(1, 1, 1);
-            else if (detection.IsWallRight) transform.localScale = new Vector3(-1, 1, 1);
+            if (detection.IsWallLeft) transform.localScale = originalScale;
+            else if (detection.IsWallRight) transform.localScale = 
+                    new Vector3(-originalScale.x, originalScale.y, originalScale.z);
         }
         else if (movement.IsWallJumping)
         {
@@ -41,7 +49,8 @@ public class PlayerAnimator : MonoBehaviour
         }
         else if (Mathf.Abs(movement.HorizontalInput) > 0.1f)
         {
-            transform.localScale = new Vector3(Mathf.Sign(movement.HorizontalInput), 1, 1);
+            float direction = Mathf.Sign(movement.HorizontalInput);
+            transform.localScale = new Vector3(direction * originalScale.x, originalScale.y, originalScale.z);
         }
     }
 
