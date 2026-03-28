@@ -96,24 +96,24 @@ public class CharacterMovement : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
-            jumpBufferCounter = jumpBufferTime;
+            if ((IsWallSliding || isTouchingWall) && !detection.IsGrounded)
+            {
+                StopCoroutine(nameof(PerformWallJump));
+                StartCoroutine(PerformWallJump());
+            }
+            else
+            {
+                jumpBufferCounter = jumpBufferTime;
+            }
         }
         else
         {
             jumpBufferCounter -= Time.deltaTime;
         }
 
-        if (jumpBufferCounter > 0f)
+        if (jumpBufferCounter > 0f && coyoteCounter > 0f)
         {
-            if (coyoteCounter > 0f)
-            {
-                ApplyJump();
-            }
-            else if (IsWallSliding || isTouchingWall)
-            {
-                StopCoroutine(nameof(PerformWallJump));
-                StartCoroutine(PerformWallJump());
-            }
+            ApplyJump();
         }
 
         if (IsWallSliding && !IsWallJumping)

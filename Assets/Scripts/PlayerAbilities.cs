@@ -86,7 +86,6 @@ public class PlayerAbilities : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
-            // NEW: Launch player if they jump while grappling
             if (isGrappling)
             {
                 LaunchFromGrapple();
@@ -105,12 +104,15 @@ public class PlayerAbilities : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (IsDashing)
+        {
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
+        }
+
         if (isGrappling)
         {
-            // Apply horizontal force to swing
             rb.AddForce(new Vector2(movement.HorizontalInput * swingForce, 0));
 
-            // SLIGHT UPWARD BIAS: Makes the swing feel less "heavy" at the bottom
             if (rb.linearVelocity.y < 0)
                 rb.AddForce(Vector2.up * (swingForce * 0.2f));
         }
@@ -241,14 +243,12 @@ public class PlayerAbilities : MonoBehaviour
         grappleJoint.enabled = false;
         ropeRenderer.enabled = false;
 
-        // Apply the "Jump" kick
-        // We multiply horizontal velocity to keep momentum and add a flat vertical force
         float newX = rb.linearVelocity.x * grappleJumpBoost;
         float newY = Mathf.Max(rb.linearVelocity.y, 0) + verticalLaunchForce;
 
         rb.linearVelocity = new Vector2(newX, newY);
 
-        AudioManager.Instance.DoubleJumpPlay(); // Use jump sound for feedback
+        AudioManager.Instance.DoubleJumpPlay();
     }
 
     private void UpdateButtonState(string name, bool state)

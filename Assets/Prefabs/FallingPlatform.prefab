@@ -94,7 +94,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa2d00b54cab85043bf319f8858eb4b8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fallDelay: 0.8
+  fallDelay: 1
   respawnDelay: 2
   shakeMagnitude: 0.05
 --- !u!50 &8261967205586203279
