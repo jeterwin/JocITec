@@ -1,5 +1,7 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class EndGameTrigger : MonoBehaviour
 {
@@ -10,15 +12,19 @@ public class EndGameTrigger : MonoBehaviour
     [SerializeField] private TextMeshProUGUI bonusText;
     [SerializeField] private TextMeshProUGUI finalTimeText;
 
+    [Header("Transition (Match GameManager)")]
+    [SerializeField] private GameObject deathScreen; // Drag your Death Screen here
+    [SerializeField] private Animator deathAnimator; // Drag your Death Animator here
+    [SerializeField] private float transitionTime = 0.5f;
+
     private bool triggered = false;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (triggered) return;
-        if (!collision.CompareTag("Player")) return;
-
+        if (triggered || !collision.CompareTag("Player")) return;
         triggered = true;
         ShowEndScreen();
+        GoToMainMenu();
     }
 
     private void ShowEndScreen()
@@ -32,16 +38,30 @@ public class EndGameTrigger : MonoBehaviour
 
         endPanel.SetActive(true);
 
-        if (rawTimeText != null)
-            rawTimeText.text = $"Total Time: {GameTimer.FormatTime(raw)}";
+        if (rawTimeText != null) rawTimeText.text = $"Total Time: {GameTimer.FormatTime(raw)}";
+        if (coinsText != null) coinsText.text = $"Remaining Coins: {coins}";
+        if (bonusText != null) bonusText.text = $"Bonus: -{GameTimer.FormatTime(bonus)}";
+        if (finalTimeText != null) finalTimeText.text = $"FINAL TIME: {GameTimer.FormatTime(final)}";
+    }
 
-        if (coinsText != null)
-            coinsText.text = $"Remaining Coins: {coins}";
+    // Call this from your "Main Menu" button onClick()
+    public void GoToMainMenu()
+    {
+        StartCoroutine(FadeAndLoad());
+    }
 
-        if (bonusText != null)
-            bonusText.text = $"Bonus: -{GameTimer.FormatTime(bonus)}";
+    private IEnumerator FadeAndLoad()
+    {
+        yield return new WaitForSeconds(transitionTime);
 
-        if (finalTimeText != null)
-            finalTimeText.text = $"FINAL TIME: {GameTimer.FormatTime(final)}";
+        deathScreen.SetActive(true);
+
+        deathAnimator.Play("FadeIn");
+
+
+        endPanel.SetActive(false);
+
+        // 5. Swap scenes
+        SceneManager.LoadScene("Main Menu");
     }
 }
