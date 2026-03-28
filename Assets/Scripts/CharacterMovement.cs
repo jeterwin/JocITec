@@ -4,6 +4,8 @@ using System.Collections;
 
 public class CharacterMovement : MonoBehaviour
 {
+    public static CharacterMovement Instance;
+
     [SerializeField] private float maxSpeed = 12f;
     [SerializeField] private float acceleration = 60f;
     [SerializeField] private float deceleration = 60f;
@@ -40,6 +42,7 @@ public class CharacterMovement : MonoBehaviour
 
     private void Awake()
     {
+        Instance = this;
         rb = GetComponent<Rigidbody2D>();
         detection = GetComponent<PlayerDetection>();
         abilities = GetComponent<PlayerAbilities>();

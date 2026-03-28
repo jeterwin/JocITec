@@ -6,15 +6,6 @@ public class SlowMotionController : MonoBehaviour
     [SerializeField] private GameObject slowMoPanel;
     [SerializeField] private float slowTimeScale = 0.25f;
 
-    private string currentSelection = "None";
-    private List<string> unlockedAbilities = new List<string>();
-
-    public string CurrentSelection
-    {
-        get => currentSelection;
-        set => currentSelection = value;
-    }
-
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Q))
@@ -28,18 +19,6 @@ public class SlowMotionController : MonoBehaviour
         }
     }
 
-    public void UnlockAbility(string abilityName)
-    {
-        if (!unlockedAbilities.Contains(abilityName))
-        {
-            unlockedAbilities.Add(abilityName);
-        }
-    }
-
-    public void SetCurrentSelection(string name)
-    {
-        currentSelection = name;
-    }
 
     void StartSlowMotion()
     {

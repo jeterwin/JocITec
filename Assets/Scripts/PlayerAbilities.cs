@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections;
 using Unity.Cinemachine;
+using System.Collections.Generic;
+
 public class PlayerAbilities : MonoBehaviour
 {
     [SerializeField] private SlowMotionController slowMo;
@@ -30,7 +32,12 @@ public class PlayerAbilities : MonoBehaviour
     private DistanceJoint2D grappleJoint;
     private bool isGrappling;
     private bool canDash = true;
+    private List<string> unlockedAbilities = new();
 
+    private string currentSelection = "None";
+    private string pendingSelection = "None";
+
+    public string CurrentSelection => currentSelection;
     public bool IsDashing { get; private set; }
 
     private void Awake()
@@ -43,25 +50,26 @@ public class PlayerAbilities : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(dashKeyCode) && 
-            slowMo.CurrentSelection == dashAbilityName && canDash)
+        if (Input.GetKeyUp(KeyCode.Q))
+        {
+            ConfirmSelection();
+        }
+
+        if (Input.GetKeyDown(dashKeyCode) && currentSelection == dashAbilityName && canDash)
         {
             if (currency.TrySpend(1)) StartCoroutine(PerformDash());
         }
 
-        if (Input.GetKeyDown(grappleKeyCode) && 
-            slowMo.CurrentSelection == grappleAbilityName)
+        if (Input.GetKeyDown(grappleKeyCode) && currentSelection == grappleAbilityName)
         {
             HandleGrapple();
         }
 
         if (Input.GetButtonDown("Jump"))
         {
-            bool isMidAir = !detection.IsGrounded && !movement.IsWallSliding 
-                && movement.CoyoteCounter <= 0f;
+            bool isMidAir = !detection.IsGrounded && !movement.IsWallSliding && movement.CoyoteCounter <= 0f;
 
-            if (isMidAir && movement.CanDoubleJump 
-                && slowMo.CurrentSelection == jumpAbilityName)
+            if (isMidAir && movement.CanDoubleJump && currentSelection == jumpAbilityName)
             {
                 if (currency.TrySpend(1)) PerformDoubleJump();
             }
@@ -75,6 +83,22 @@ public class PlayerAbilities : MonoBehaviour
         if (isGrappling) rb.AddForce(new Vector2(movement.HorizontalInput * swingForce, 0));
     }
 
+    public void SetPendingSelection(string name)
+    {
+        if (unlockedAbilities.Contains(name))
+        {
+            pendingSelection = name;
+        }
+    }
+
+    private void ConfirmSelection()
+    {
+        if (pendingSelection != currentSelection)
+        {
+            currentSelection = pendingSelection;
+        }
+    }
+
     private IEnumerator PerformDash()
     {
         canDash = false;
@@ -83,7 +107,7 @@ public class PlayerAbilities : MonoBehaviour
         rb.gravityScale = 0f;
         float dir = movement.HorizontalInput != 0 ? movement.HorizontalInput : transform.localScale.x;
         rb.linearVelocity = new Vector2(dir * dashPower, 0f);
-        dashImpulse.GenerateImpulse(new Vector3(dir, 0, 0));
+        if (dashImpulse != null) dashImpulse.GenerateImpulse(new Vector3(dir, 0, 0));
         yield return new WaitForSeconds(dashTime);
         rb.gravityScale = originalGravity;
         IsDashing = false;
@@ -126,6 +150,14 @@ public class PlayerAbilities : MonoBehaviour
             isGrappling = false;
             grappleJoint.enabled = false;
             ropeRenderer.enabled = false;
+        }
+    }
+
+    public void UnlockAbility(string name)
+    {
+        if (!unlockedAbilities.Contains(name))
+        {
+            unlockedAbilities.Add(name);
         }
     }
 }

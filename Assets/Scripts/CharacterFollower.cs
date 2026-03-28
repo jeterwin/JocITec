@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class CharacterFollower : MonoBehaviour
 {
-    public string AbilityName => abilityName;
+    public string AbilityName { get => abilityName; set => abilityName = value; }
 
     private Transform playerTransform;
     private List<Vector3> positionHistory = new List<Vector3>();
@@ -16,6 +16,7 @@ public class CharacterFollower : MonoBehaviour
     {
         playerTransform = target;
         positionHistory.Add(playerTransform.position);
+        spacing = spacing * (CharacterUnlockerManager.Instance.ActiveFollowers.Count + 1);
     }
 
     private void Update()
