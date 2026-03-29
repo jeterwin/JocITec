@@ -83,7 +83,7 @@ public class EndGameTrigger : MonoBehaviour
 
         ShowEndScreen();
 
-        yield return new WaitForSeconds(.5f);
+        yield return new WaitForSeconds(7f);
         GoToMainMenu();
     }
 
@@ -95,6 +95,14 @@ public class EndGameTrigger : MonoBehaviour
         int coins = AbilityCurrency.Instance.CurrentCoins;
         float bonus = coins * GameTimer.Instance.SecondsPerCoin;
         float final = GameTimer.Instance.GetFinalTime();
+
+        // High Score Logic: Save if the new time is lower (faster)
+        float currentBest = PlayerPrefs.GetFloat("BestTime", 999999f);
+        if (final < currentBest)
+        {
+            PlayerPrefs.SetFloat("BestTime", final);
+            PlayerPrefs.Save();
+        }
 
         endPanel.SetActive(true);
 
@@ -112,10 +120,12 @@ public class EndGameTrigger : MonoBehaviour
     private IEnumerator FadeAndLoad()
     {
         deathScreen.SetActive(true);
+
         deathAnimator.Play("FadeIn");
 
         yield return new WaitForSeconds(transitionTime);
 
+   
         endPanel.SetActive(false);
         SceneManager.LoadScene("Main Menu");
     }

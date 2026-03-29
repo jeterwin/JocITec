@@ -29,6 +29,7 @@ public class PlayerDetection : MonoBehaviour
         {
             if (col.gameObject == gameObject || col.isTrigger) continue;
 
+            // Platforms ARE counted as ground so you can stand/jump on them
             if (col.CompareTag("Platform") || (groundLayer.value & (1 << col.gameObject.layer)) != 0)
             {
                 return true;
@@ -44,7 +45,11 @@ public class PlayerDetection : MonoBehaviour
         {
             if (hit.collider.gameObject == gameObject || hit.collider.isTrigger) continue;
 
-            if (hit.collider.CompareTag("Platform") || (groundLayer.value & (1 << hit.collider.gameObject.layer)) != 0)
+            // EXPLICITLY SKIP: If it's a platform, ignore it for wall mechanics
+            if (hit.collider.CompareTag("Platform")) continue;
+
+            // Otherwise, check if it's on the ground layer
+            if ((groundLayer.value & (1 << hit.collider.gameObject.layer)) != 0)
             {
                 return true;
             }

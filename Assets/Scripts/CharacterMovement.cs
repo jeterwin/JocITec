@@ -58,16 +58,8 @@ public class CharacterMovement : MonoBehaviour
         detection = GetComponent<PlayerDetection>();
         abilities = GetComponent<PlayerAbilities>();
 
-        if (walkParticles != null)
-        {
-            walkEmission = walkParticles.emission;
-            walkMain = walkParticles.main;
-        }
-        if (wallSlideParticles != null)
-        {
-            wallEmission = wallSlideParticles.emission;
-            wallMain = wallSlideParticles.main;
-        }
+        if (walkParticles != null) { walkEmission = walkParticles.emission; walkMain = walkParticles.main; }
+        if (wallSlideParticles != null) { wallEmission = wallSlideParticles.emission; wallMain = wallSlideParticles.main; }
     }
 
     private void Update()
@@ -121,93 +113,50 @@ public class CharacterMovement : MonoBehaviour
 
     private void UpdateWallSlidingState()
     {
-        bool isTouchingWall = (detection.IsWallLeft || detection.IsWallRight);
-
-        if (isTouchingWall && !detection.IsGrounded && rb.linearVelocity.y < 0.1f && !IsWallJumping)
-        {
+        if (detection.IsTouchingWall && !detection.IsGrounded && rb.linearVelocity.y < 0.1f && !IsWallJumping)
             IsWallSliding = true;
-        }
         else
-        {
             IsWallSliding = false;
-        }
     }
 
-    private bool CanPerformWallJump()
-    {
-        bool isTouchingWall = (detection.IsWallLeft || detection.IsWallRight);
-        return (IsWallSliding || isTouchingWall) && !detection.IsGrounded;
-    }
+    private bool CanPerformWallJump() => detection.IsTouchingWall && !detection.IsGrounded;
 
     private void FixedUpdate()
     {
-        if (!canMove)
-        {
-            rb.linearVelocity = Vector2.zero;
-            return;
-        }
-
+        if (!canMove) { rb.linearVelocity = Vector2.zero; return; }
         if (IsWallJumping || (abilities != null && abilities.IsDashing)) return;
 
         float targetSpeed = horizontalInput * maxSpeed;
         float speedDif = targetSpeed - rb.linearVelocity.x;
-
-        float accelRate;
-        if (detection.IsGrounded)
-        {
-            accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? acceleration : deceleration;
-        }
-        else
-        {
-            accelRate = (Mathf.Abs(targetSpeed) > 0.01f) ? airAcceleration : airDeceleration;
-        }
+        float accelRate = detection.IsGrounded ? (Mathf.Abs(targetSpeed) > 0.01f ? acceleration : deceleration) : (Mathf.Abs(targetSpeed) > 0.01f ? airAcceleration : airDeceleration);
 
         rb.AddForce(speedDif * accelRate * Vector2.right, ForceMode2D.Force);
     }
 
     private void AdjustGravity()
     {
-        if (IsWallSliding)
-        {
-            rb.gravityScale = 0;
-            return;
-        }
-
-        if (IsWallJumping)
-        {
-            rb.gravityScale = gravityScale;
-            return;
-        }
+        if (IsWallSliding) { rb.gravityScale = 0; return; }
+        if (IsWallJumping) { rb.gravityScale = gravityScale; return; }
 
         if (Mathf.Abs(rb.linearVelocity.y) < 1.5f && !detection.IsGrounded)
-        {
             rb.gravityScale = gravityScale * apexGravityMultiplier;
-        }
         else if (rb.linearVelocity.y < 0)
-        {
             rb.gravityScale = fallMultiplier;
-        }
         else if (rb.linearVelocity.y > 0 && !Input.GetButton("Jump"))
-        {
             rb.gravityScale = lowJumpMultiplier;
-        }
         else
-        {
             rb.gravityScale = gravityScale;
-        }
     }
 
     private void HandleParticles()
     {
         Color modeColor = GetSelectionColor();
-
         if (walkParticles != null)
         {
             bool isWalking = detection.IsGrounded && Mathf.Abs(horizontalInput) > 0.1f;
             walkEmission.enabled = isWalking;
             if (isWalking) walkMain.startColor = modeColor;
         }
-
         if (wallSlideParticles != null)
         {
             wallEmission.enabled = IsWallSliding;
@@ -223,20 +172,12 @@ public class CharacterMovement : MonoBehaviour
     private Color GetSelectionColor()
     {
         if (abilities == null) return Color.white;
-
-        return abilities.CurrentSelection switch
-        {
-            "Jump" => Color.magenta,
-            "Dash" => Color.green,
-            "Grapple" => Color.yellow,
-            _ => Color.white
-        };
+        return abilities.CurrentSelection switch { "Jump" => Color.magenta, "Dash" => Color.green, "Grapple" => Color.yellow, _ => Color.white };
     }
 
     public void ApplyJump()
     {
         AudioManager.Instance.PlayJump();
-
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
         rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         coyoteCounter = 0f;
@@ -248,16 +189,11 @@ public class CharacterMovement : MonoBehaviour
         IsWallJumping = true;
         IsWallSliding = false;
         jumpBufferCounter = 0f;
-
         AudioManager.Instance.PlayWallJump();
-
         float jumpDirection = detection.IsWallLeft ? 1 : -1;
-
         rb.linearVelocity = Vector2.zero;
         rb.AddForce(new Vector2(wallJumpForce.x * jumpDirection, wallJumpForce.y), ForceMode2D.Impulse);
-
         yield return new WaitForSeconds(wallJumpDuration);
-
         IsWallJumping = false;
     }
 

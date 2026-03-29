@@ -29,6 +29,11 @@ public class AsyncLoader : MonoBehaviour
         }
     }
 
+    public void QuitGame()
+    {
+        Application.Quit();
+    }    
+
     public void LoadLevel(string sceneName)
     {
         StartCoroutine(LoadSceneAsync(sceneName));

@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class AbilityCurrency : MonoBehaviour
 {
@@ -26,7 +27,12 @@ public class AbilityCurrency : MonoBehaviour
             UpdateUI();
             return true;
         }
-        return false;
+        else
+        {
+            SceneManager.LoadScene("XD");
+            return false;
+        }
+            
     }
 
     public void AddCoins(int amount)
