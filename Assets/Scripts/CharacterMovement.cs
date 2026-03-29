@@ -22,7 +22,7 @@ public class CharacterMovement : MonoBehaviour
 
     [SerializeField] private float wallSlideSpeed = 2f;
     [SerializeField] private Vector2 wallJumpForce = new Vector2(15f, 22f);
-    [SerializeField] private float wallJumpDuration = 0.15f;
+    [SerializeField] private float wallJumpDuration = 0.2f;
 
     [SerializeField] private ParticleSystem walkParticles;
     [SerializeField] private ParticleSystem wallSlideParticles;
@@ -43,7 +43,6 @@ public class CharacterMovement : MonoBehaviour
     private ParticleSystem.MainModule wallMain;
 
     public float HorizontalInput => horizontalInput;
-
     public float CoyoteCounter => coyoteCounter;
     public bool IsDoubleJumping { get; private set; }
     public bool CanMove { get => canMove; set => canMove = value; }
@@ -77,13 +76,11 @@ public class CharacterMovement : MonoBehaviour
 
         horizontalInput = Input.GetAxisRaw("Horizontal");
 
-        bool isTouchingWall = (detection.IsWallLeft || detection.IsWallRight);
-        IsWallSliding = isTouchingWall && !detection.IsGrounded && rb.linearVelocity.y < 0;
-
+        UpdateWallSlidingState();
         HandleParticles();
         AdjustGravity();
 
-        if (detection.IsGrounded && rb.linearVelocity.y <= 0.01f)
+        if (detection.IsGrounded && rb.linearVelocity.y <= 0.1f)
         {
             coyoteCounter = coyoteTime;
             canDoubleJump = true;
@@ -96,7 +93,7 @@ public class CharacterMovement : MonoBehaviour
 
         if (Input.GetButtonDown("Jump"))
         {
-            if ((IsWallSliding || isTouchingWall) && !detection.IsGrounded)
+            if (CanPerformWallJump())
             {
                 StopCoroutine(nameof(PerformWallJump));
                 StartCoroutine(PerformWallJump());
@@ -122,17 +119,24 @@ public class CharacterMovement : MonoBehaviour
         }
     }
 
-    private Color GetSelectionColor()
+    private void UpdateWallSlidingState()
     {
-        if (abilities == null) return Color.white;
+        bool isTouchingWall = (detection.IsWallLeft || detection.IsWallRight);
 
-        return abilities.CurrentSelection switch
+        if (isTouchingWall && !detection.IsGrounded && rb.linearVelocity.y < 0.1f && !IsWallJumping)
         {
-            "Jump" => Color.magenta,
-            "Dash" => Color.green,
-            "Grapple" => Color.yellow,
-            _ => Color.white
-        };
+            IsWallSliding = true;
+        }
+        else
+        {
+            IsWallSliding = false;
+        }
+    }
+
+    private bool CanPerformWallJump()
+    {
+        bool isTouchingWall = (detection.IsWallLeft || detection.IsWallRight);
+        return (IsWallSliding || isTouchingWall) && !detection.IsGrounded;
     }
 
     private void FixedUpdate()
@@ -166,6 +170,12 @@ public class CharacterMovement : MonoBehaviour
         if (IsWallSliding)
         {
             rb.gravityScale = 0;
+            return;
+        }
+
+        if (IsWallJumping)
+        {
+            rb.gravityScale = gravityScale;
             return;
         }
 
@@ -210,6 +220,19 @@ public class CharacterMovement : MonoBehaviour
         }
     }
 
+    private Color GetSelectionColor()
+    {
+        if (abilities == null) return Color.white;
+
+        return abilities.CurrentSelection switch
+        {
+            "Jump" => Color.magenta,
+            "Dash" => Color.green,
+            "Grapple" => Color.yellow,
+            _ => Color.white
+        };
+    }
+
     public void ApplyJump()
     {
         AudioManager.Instance.PlayJump();
@@ -223,13 +246,18 @@ public class CharacterMovement : MonoBehaviour
     private IEnumerator PerformWallJump()
     {
         IsWallJumping = true;
+        IsWallSliding = false;
         jumpBufferCounter = 0f;
 
         AudioManager.Instance.PlayWallJump();
 
         float jumpDirection = detection.IsWallLeft ? 1 : -1;
-        rb.linearVelocity = new Vector2(jumpDirection * wallJumpForce.x, wallJumpForce.y);
+
+        rb.linearVelocity = Vector2.zero;
+        rb.AddForce(new Vector2(wallJumpForce.x * jumpDirection, wallJumpForce.y), ForceMode2D.Impulse);
+
         yield return new WaitForSeconds(wallJumpDuration);
+
         IsWallJumping = false;
     }
 

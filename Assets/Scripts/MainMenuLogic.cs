@@ -1,28 +1,59 @@
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using System.Collections;
+using TMPro;
 
-public class MainMenuLogic : MonoBehaviour
+public class AsyncLoader : MonoBehaviour
 {
-    public Canvas Canvas;
-    public Canvas SettingsCanvas;
-    public void SwapToSettings()
+    public GameObject LoadingScreen;
+    public TextMeshProUGUI LoadingText;
+    public float BounceSpeed = 5f;
+    public float BounceAmplitude = 10f;
+
+    private Vector3 _textInitialPosition;
+    private bool _isLoading = false;
+
+    private void Start()
     {
-        Canvas.gameObject.SetActive(false);
-        SettingsCanvas.gameObject.SetActive(true);
+        _textInitialPosition = LoadingText.transform.localPosition;
+        LoadingScreen.SetActive(false);
     }
 
-    public void SwapToMainMenu()
+    private void Update()
     {
-        SettingsCanvas.gameObject.SetActive(false);
-        Canvas.gameObject.SetActive(true);
+        if (_isLoading)
+        {
+            float newY = _textInitialPosition.y + Mathf.Sin(Time.time * BounceSpeed) * BounceAmplitude;
+            LoadingText.transform.localPosition = new Vector3(_textInitialPosition.x, newY, _textInitialPosition.z);
+        }
     }
 
-    public void QuitGame()
+    public void LoadLevel(string sceneName)
     {
-        Application.Quit();
+        StartCoroutine(LoadSceneAsync(sceneName));
     }
 
-    public void StartGame()
+    private IEnumerator LoadSceneAsync(string sceneName)
     {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("XD");
+        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
+        operation.allowSceneActivation = false;
+        _isLoading = true;
+        LoadingScreen.SetActive(true);
+
+        while (!operation.isDone)
+        {
+            if (operation.progress >= 0.9f)
+            {
+                LoadingText.text = "Press SPACE to continue";
+
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    operation.allowSceneActivation = true;
+                }
+            }
+
+            yield return null;
+        }
     }
 }

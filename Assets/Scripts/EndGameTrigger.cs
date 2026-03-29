@@ -12,9 +12,18 @@ public class EndGameTrigger : MonoBehaviour
     [SerializeField] private TextMeshProUGUI bonusText;
     [SerializeField] private TextMeshProUGUI finalTimeText;
 
-    [Header("Transition (Match GameManager)")]
-    [SerializeField] private GameObject deathScreen; // Drag your Death Screen here
-    [SerializeField] private Animator deathAnimator; // Drag your Death Animator here
+    [Header("Cinematic Settings")]
+    [SerializeField] private Transform destination1;
+    [SerializeField] private Transform destination2;
+    [SerializeField] private float arcHeight = 5f;
+    [SerializeField] private float lerpTime = 1.5f;
+    [SerializeField] private float travelSpeed = 10f;
+    [SerializeField] private GameObject[] firstActivationGroup;
+    [SerializeField] private GameObject[] secondActivationGroup;
+
+    [Header("Transition")]
+    [SerializeField] private GameObject deathScreen;
+    [SerializeField] private Animator deathAnimator;
     [SerializeField] private float transitionTime = 0.5f;
 
     private bool triggered = false;
@@ -23,7 +32,58 @@ public class EndGameTrigger : MonoBehaviour
     {
         if (triggered || !collision.CompareTag("Player")) return;
         triggered = true;
+
+        StartCoroutine(PlayEndSequence(collision.transform));
+    }
+
+    private IEnumerator PlayEndSequence(Transform player)
+    {
+        CharacterMovement.Instance.CanMove = false;
+        Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
+
+        if (rb != null)
+        {
+            rb.bodyType = RigidbodyType2D.Kinematic;
+            rb.linearVelocity = Vector2.zero;
+        }
+
+        Vector3 startPos = player.position;
+        float elapsed = 0;
+
+        while (elapsed < lerpTime)
+        {
+            float t = elapsed / lerpTime;
+            Vector3 basePos = Vector3.Lerp(startPos, destination1.position, t);
+            float height = arcHeight * 4 * (t - t * t);
+            player.position = basePos + Vector3.up * height;
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        player.position = destination1.position;
+
+        foreach (GameObject obj in firstActivationGroup)
+        {
+            if (obj != null) obj.SetActive(true);
+        }
+
+        while (Vector3.Distance(player.position, destination2.position) > 0.01f)
+        {
+            player.position = Vector3.MoveTowards(player.position, destination2.position, travelSpeed * Time.deltaTime);
+            yield return null;
+        }
+        player.position = destination2.position;
+
+        foreach (GameObject obj in secondActivationGroup)
+        {
+            if (obj != null) obj.SetActive(true);
+        }
+
+        yield return new WaitForSeconds(3f);
+
         ShowEndScreen();
+
+        yield return new WaitForSeconds(.5f);
         GoToMainMenu();
     }
 
@@ -44,7 +104,6 @@ public class EndGameTrigger : MonoBehaviour
         if (finalTimeText != null) finalTimeText.text = $"FINAL TIME: {GameTimer.FormatTime(final)}";
     }
 
-    // Call this from your "Main Menu" button onClick()
     public void GoToMainMenu()
     {
         StartCoroutine(FadeAndLoad());
@@ -52,16 +111,12 @@ public class EndGameTrigger : MonoBehaviour
 
     private IEnumerator FadeAndLoad()
     {
-        yield return new WaitForSeconds(transitionTime);
-
         deathScreen.SetActive(true);
-
         deathAnimator.Play("FadeIn");
 
+        yield return new WaitForSeconds(transitionTime);
 
         endPanel.SetActive(false);
-
-        // 5. Swap scenes
         SceneManager.LoadScene("Main Menu");
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class CharacterUnlockerManager : MonoBehaviour
@@ -7,6 +8,8 @@ public class CharacterUnlockerManager : MonoBehaviour
 
     [SerializeField] private ParticleSystem swapSFX;
     [SerializeField] private PlayerAbilities playerAbilities;
+    [SerializeField] private Animator UIanim;
+    [SerializeField] private TextMeshProUGUI heroName;
     [SerializeField] private SpriteRenderer playerSR;
     [SerializeField] private AudioSource audioSource;
 
@@ -85,6 +88,8 @@ public class CharacterUnlockerManager : MonoBehaviour
     {
         if (activeFollowers.Exists(f => f.AbilityName == companionPrefab.AbilityName)) return;
 
+        UIanim.Play("AcquiredHero");
+        heroName.text = companionPrefab.gameObject.name;
         Transform playerTransform = CharacterMovement.Instance.transform;
 
         GameObject newCompanion = Instantiate(companionPrefab.gameObject,

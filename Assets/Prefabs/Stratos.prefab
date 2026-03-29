@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7545830644830087838}
   - component: {fileID: 5878156693340633067}
   m_Layer: 0
-  m_Name: JumpNPC
+  m_Name: Stratos
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
