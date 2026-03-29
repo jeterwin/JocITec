@@ -7,6 +7,8 @@ public class DialogueTrigger : MonoBehaviour
     [SerializeField] private CharacterFollower companionToSpawn;
     [SerializeField] private List<DialogueEntry> conversation;
 
+    [SerializeField] private bool shouldDestroy = true;
+
     public void TriggerDialogue()
     {
         manager.StartDialogue(conversation, companionToSpawn);
@@ -15,6 +17,8 @@ public class DialogueTrigger : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         TriggerDialogue();
-        Destroy(gameObject);
+
+        if(shouldDestroy)
+            Destroy(gameObject);
     }
 }

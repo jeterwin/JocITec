@@ -103,12 +103,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spacing: 0.4
   moveSpeed: 12
+  teleportThreshold: 5
   abilityName: Grapple
-  wallLayer:
-    serializedVersion: 2
-    m_Bits: 8
-  wallSlideStateName: WallSlide
-  fallStateName: Jump
+  charSprite: {fileID: 21300000, guid: 4b92ef04e92610941857fac8dce7c60a, type: 3}
 --- !u!95 &-6832395389760079480
 Animator:
   serializedVersion: 7

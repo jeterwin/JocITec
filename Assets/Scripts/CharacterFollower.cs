@@ -4,11 +4,15 @@ using System.Collections.Generic;
 public class CharacterFollower : MonoBehaviour
 {
     public string AbilityName { get => abilityName; set => abilityName = value; }
+    public Sprite CharSprite { get => charSprite; }
 
     [SerializeField] private float spacing = 0.15f;
     [SerializeField] private float moveSpeed = 12f;
     [SerializeField] private float teleportThreshold = 5f;
+
     [SerializeField] private string abilityName;
+
+    [SerializeField] private Sprite charSprite;
 
     private Transform playerTransform;
     private Animator playerAnimator;

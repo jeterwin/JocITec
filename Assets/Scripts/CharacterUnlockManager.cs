@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CharacterUnlockerManager : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class CharacterUnlockerManager : MonoBehaviour
     [SerializeField] private PlayerAbilities playerAbilities;
     [SerializeField] private Animator UIanim;
     [SerializeField] private TextMeshProUGUI heroName;
+    [SerializeField] private Image heroImage;
     [SerializeField] private SpriteRenderer playerSR;
     [SerializeField] private AudioSource audioSource;
 
@@ -90,6 +92,7 @@ public class CharacterUnlockerManager : MonoBehaviour
 
         UIanim.Play("AcquiredHero");
         heroName.text = companionPrefab.gameObject.name;
+        heroImage.sprite = companionPrefab.CharSprite;
         Transform playerTransform = CharacterMovement.Instance.transform;
 
         GameObject newCompanion = Instantiate(companionPrefab.gameObject,

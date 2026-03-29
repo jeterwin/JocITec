@@ -103,12 +103,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spacing: 0.4
   moveSpeed: 12
+  teleportThreshold: 5
   abilityName: Jump
-  wallLayer:
-    serializedVersion: 2
-    m_Bits: 8
-  wallSlideStateName: WallSlide
-  fallStateName: Jump
+  charSprite: {fileID: 21300000, guid: 20f9428f3f9c53645a456762677bbf0b, type: 3}
 --- !u!95 &5878156693340633067
 Animator:
   serializedVersion: 7
