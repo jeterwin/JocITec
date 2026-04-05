@@ -27,6 +27,8 @@ The core of Mount Taygetus is the Token System. Balancing your survival with you
 
 
 Experience a lush 16-bit world that transitions from flowery meadows to high-altitude peaks.
+
+
 🛠️ Controls
 
   Move: ASD
